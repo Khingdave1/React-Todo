@@ -1,49 +1,41 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, Form, redirect } from 'react-router-dom';
 import classes from './NewPost.module.css';
 import Modal from '../components/Modal';
-function NewPost({ onCancel, onAddPost}) {
-  const [enteredAuthor, setEnteredAuthor] = useState('');
-  const [enteredBody, setEnteredBody] = useState('');
 
-  function textChangeHandler(event) {
-    setEnteredAuthor(event.target.value);
-  }
-
-  function nameChangeHandler(event) {
-    setEnteredBody(event.target.value);
-  }
-
-  function submitHandler(event) {
-    event.preventDefault();
-
-    const postData = {
-      author: enteredAuthor,
-      body: enteredBody
-    };
-    onAddPost(postData);
-    onCancel();
-  }
-
+function NewPost() {
   return (
     <Modal>
-      <form className={classes.form} onSubmit={submitHandler}>
+      <Form method="post" className={classes.form}>
         <p>
           <label htmlFor="body">Text</label>
-          <textarea id="body" required rows={3} value={enteredBody} onChange={nameChangeHandler} />
+          <textarea id="body" name='body' required rows={3} />
         </p>
         <p>
-          <label htmlFor="name">Your name</label>
-          <input type="text" id="name" required value={enteredAuthor} onChange={textChangeHandler} />
+          <label htmlFor="author">Your name</label>
+          <input type="text" id="author" name='author' required />
         </p>
         <p className={classes.actions}>
           <Link to=".." className={classes.button} type="button">Cancel</Link>
           <button type="submit">Submit</button>
         </p>
-      </form>
+      </Form>
 
     </Modal>
   );
 }
 
 export default NewPost;
+
+export async function action({ request }) {
+  const formData = await request.formData();
+  const postData =  Object.fromEntries(formData);
+  await fetch('http://localhost:8080/posts', {
+    method: 'POST',
+    body: JSON.stringify(postData),
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
+
+  return redirect('/');
+}
